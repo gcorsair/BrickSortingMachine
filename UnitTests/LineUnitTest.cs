@@ -1,5 +1,4 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using BrickSorter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

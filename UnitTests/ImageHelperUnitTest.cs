@@ -10,35 +10,35 @@ namespace UnitTests
     [DeploymentItem(@"TestData\two.png")]
     [DeploymentItem(@"TestData\two_processed.png")]
     [TestClass]
-    public class ImgUnitTest : Img
+    public class ImageHelperUnitTest : ImageHelper
     {
         [TestMethod]
         public void GetBitmapReadyForProcessing()
         {
             GetBitmapReadyForProcessing("two.png", 0.5d);
 
-            Assert.IsTrue(BitmapComparer.CompareMemCmp((Bitmap)Image.FromFile("two_processed.png"), (Bitmap)_img));
+            Assert.IsTrue(BitmapComparer.CompareMemCmp((Bitmap)Image.FromFile("two_processed.png"), (Bitmap)Img));
         }
 
         [TestMethod]
         public void DrawLineAndText()
         {
-            LoadFromFile("six.png");
+            Img = Image.FromFile("six.png");
 
-            var start = new Point(0,0);
-            var end = new Point(50,100);
+            var start = new Point(0, 0);
+            var end = new Point(50, 100);
             DrawLine(start, end, Color.Red);
             DrawText(end, "(50,100)", Brushes.Black);
 
-            Assert.IsTrue(BitmapComparer.CompareMemCmp((Bitmap)Image.FromFile("six_LineAndText.png"), (Bitmap)_img));
+            Assert.IsTrue(BitmapComparer.CompareMemCmp((Bitmap)Image.FromFile("six_LineAndText.png"), (Bitmap)Img));
         }
 
         [TestMethod]
         public void DrawLines()
         {
-            LoadFromFile("six.png");
+            Img = Image.FromFile("six.png");
 
-            var line0 = new Line(new Point(10,10), 0);
+            var line0 = new Line(new Point(10, 10), 0);
             DrawLine(line0, Color.Red);
             DrawText(line0.Point, $"{line0.AngleInDegrees}°", Brushes.Red);
 
@@ -58,11 +58,11 @@ namespace UnitTests
             DrawLine(line90, Color.Black);
             DrawText(line90.Point, $"{line90.AngleInDegrees}°", Brushes.Black);
 
-            var line60neg = new Line(new Point(200, 200), -60);
-            DrawLine(line60neg, Color.Green);
-            DrawText(line60neg.Point, $"{line60neg.AngleInDegrees}°", Brushes.Green);
+            var line60Neg = new Line(new Point(200, 200), -60);
+            DrawLine(line60Neg, Color.Green);
+            DrawText(line60Neg.Point, $"{line60Neg.AngleInDegrees}°", Brushes.Green);
 
-            Assert.IsTrue(BitmapComparer.CompareMemCmp((Bitmap)Image.FromFile("six_Lines.png"), (Bitmap)_img));
+            Assert.IsTrue(BitmapComparer.CompareMemCmp((Bitmap)Image.FromFile("six_Lines.png"), (Bitmap)Img));
         }
     }
 }

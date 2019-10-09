@@ -5,33 +5,28 @@ using System.Drawing.Imaging;
 
 namespace BrickSorter
 {
-    public class Img
+    public class ImageHelper
     {
-        private readonly Color _blankColor = Color.FromArgb(255, 255, 255, 255);
-        public static Image _img;
+        public static Image Img { get; set; }
+        public static readonly Color BlankColor = Color.FromArgb(255, 255, 255, 255);
 
-        public Bitmap GetBitmapReadyForProcessing(string path, double multiplier = 1)
+        public static Bitmap GetBitmapReadyForProcessing(string path, double multiplier = 1)
         {
-            LoadFromFile(path);
+            Img = Image.FromFile(path);
             CompensateBackground();
             Resize(multiplier);
             ConvertToLowerQuality();
-            return ((Bitmap)_img);
+            return ((Bitmap)Img);
         }
 
-        protected void LoadFromFile(string path)
+        static void Resize(double multiplier)
         {
-            _img = Image.FromFile(path);
-        }
-
-        void Resize(double multiplier)
-        {
-            var width = (int)Math.Round(_img.Width * multiplier);
-            var height = (int)Math.Round(_img.Height * multiplier);
+            var width = (int)Math.Round(Img.Width * multiplier);
+            var height = (int)Math.Round(Img.Height * multiplier);
             var destRect = new Rectangle(0, 0, width, height);
             var destImage = new Bitmap(width, height);
 
-            destImage.SetResolution(_img.HorizontalResolution, _img.VerticalResolution);
+            destImage.SetResolution(Img.HorizontalResolution, Img.VerticalResolution);
 
             using (var graphics = Graphics.FromImage(destImage))
             {
@@ -39,14 +34,14 @@ namespace BrickSorter
 
                 using (var wrapMode = new ImageAttributes())
                 {
-                    graphics.DrawImage(_img, destRect, 0, 0, _img.Width, _img.Height, GraphicsUnit.Pixel, wrapMode);
+                    graphics.DrawImage(Img, destRect, 0, 0, Img.Width, Img.Height, GraphicsUnit.Pixel, wrapMode);
                 }
             }
 
-            _img = destImage;
+            Img = destImage;
         }
 
-        void CompensateBackground()
+        static void CompensateBackground()
         {
             var gamma = 1f;
             var contrast = 1f;
@@ -58,11 +53,11 @@ namespace BrickSorter
             } while (!AllCornersAreWhite());
         }
 
-        void Adjust(float gamma, float contrast)
+        static void Adjust(float gamma, float contrast)
         {
-            var destRect = new Rectangle(0, 0, _img.Width, _img.Height);
-            var destImage = new Bitmap(_img.Width, _img.Height);
-            destImage.SetResolution(_img.HorizontalResolution, _img.VerticalResolution);
+            var destRect = new Rectangle(0, 0, Img.Width, Img.Height);
+            var destImage = new Bitmap(Img.Width, Img.Height);
+            destImage.SetResolution(Img.HorizontalResolution, Img.VerticalResolution);
 
             using (var graphics = Graphics.FromImage(destImage))
             {
@@ -82,34 +77,34 @@ namespace BrickSorter
                     wrapMode.ClearColorMatrix();
                     wrapMode.SetColorMatrix(new ColorMatrix(ptsArray), ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
                     wrapMode.SetGamma(gamma, ColorAdjustType.Bitmap);
-                    graphics.DrawImage(_img, destRect, 0, 0, _img.Width, _img.Height, GraphicsUnit.Pixel, wrapMode);
+                    graphics.DrawImage(Img, destRect, 0, 0, Img.Width, Img.Height, GraphicsUnit.Pixel, wrapMode);
                 }
             }
 
-            _img = destImage;
+            Img = destImage;
         }
 
-        bool AllCornersAreWhite()
+        static bool AllCornersAreWhite()
         {
-            var bmp = ((Bitmap)_img);
+            var bmp = ((Bitmap)Img);
             return
-                bmp.GetPixel(0, 0) == _blankColor &&
-                bmp.GetPixel(_img.Width - 1, 0) == _blankColor &&
-                bmp.GetPixel(0, _img.Height - 1) == _blankColor &&
-                bmp.GetPixel(_img.Width - 1, _img.Height - 1) == _blankColor;
+                bmp.GetPixel(0, 0) == BlankColor &&
+                bmp.GetPixel(Img.Width - 1, 0) == BlankColor &&
+                bmp.GetPixel(0, Img.Height - 1) == BlankColor &&
+                bmp.GetPixel(Img.Width - 1, Img.Height - 1) == BlankColor;
         }
 
-        void ConvertToLowerQuality()
+        static void ConvertToLowerQuality()
         {
-            var destRect = new Rectangle(0, 0, _img.Width, _img.Height);
-            _img = ((Bitmap)_img).Clone(destRect, PixelFormat.Format8bppIndexed);
+            var destRect = new Rectangle(0, 0, Img.Width, Img.Height);
+            Img = ((Bitmap)Img).Clone(destRect, PixelFormat.Format8bppIndexed);
         }
 
         public static void DrawLine(Point start, Point end, Color color)
         {
-            var destRect = new Rectangle(0, 0, _img.Width, _img.Height);
-            var destImage = new Bitmap(_img.Width, _img.Height);
-            destImage.SetResolution(_img.HorizontalResolution, _img.VerticalResolution);
+            var destRect = new Rectangle(0, 0, Img.Width, Img.Height);
+            var destImage = new Bitmap(Img.Width, Img.Height);
+            destImage.SetResolution(Img.HorizontalResolution, Img.VerticalResolution);
 
             using (var graphics = Graphics.FromImage(destImage))
             {
@@ -117,13 +112,13 @@ namespace BrickSorter
 
                 using (var wrapMode = new ImageAttributes())
                 {
-                    graphics.DrawImage(_img, destRect, 0, 0, _img.Width, _img.Height, GraphicsUnit.Pixel, wrapMode);
+                    graphics.DrawImage(Img, destRect, 0, 0, Img.Width, Img.Height, GraphicsUnit.Pixel, wrapMode);
                     var myPen = new Pen(color) { Width = 1 };
                     graphics.DrawLine(myPen, start, end);
                 }
             }
 
-            _img = destImage;
+            Img = destImage;
         }
 
         public static void DrawLine(Line line, Color color)
@@ -131,26 +126,26 @@ namespace BrickSorter
             var topX = line.GetXbyY(0);
             DrawLine(line.Point, new Point(topX, 0), color);
 
-            var bottomX = line.GetXbyY(_img.Height);
-            DrawLine(line.Point, new Point(bottomX, _img.Height), color);
+            var bottomX = line.GetXbyY(Img.Height);
+            DrawLine(line.Point, new Point(bottomX, Img.Height), color);
         }
 
         public static void DrawText(Point start, string text, Brush brush)
         {
-            var destRect = new Rectangle(0, 0, _img.Width, _img.Height);
-            var destImage = new Bitmap(_img.Width, _img.Height);
-            destImage.SetResolution(_img.HorizontalResolution, _img.VerticalResolution);
+            var destRect = new Rectangle(0, 0, Img.Width, Img.Height);
+            var destImage = new Bitmap(Img.Width, Img.Height);
+            destImage.SetResolution(Img.HorizontalResolution, Img.VerticalResolution);
 
             using (var graphics = Graphics.FromImage(destImage))
             {
                 graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                graphics.DrawImage(_img, destRect, 0, 0, _img.Width, _img.Height, GraphicsUnit.Pixel);
+                graphics.DrawImage(Img, destRect, 0, 0, Img.Width, Img.Height, GraphicsUnit.Pixel);
                 graphics.DrawString(text, new Font("Tahoma", 12), brush, start);
             }
 
-            _img = destImage;
+            Img = destImage;
         }
     }
 }
