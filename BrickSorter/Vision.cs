@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 
 namespace BrickSorter
@@ -6,19 +7,11 @@ namespace BrickSorter
     public class Vision
     {
         private readonly Color _blankColor = Color.FromArgb(255, 255, 255, 255);
-        private readonly Direction _topRight = new Direction(+1, -1);
-        private readonly Direction _topLeft = new Direction(-1, -1);
-        private readonly Direction _bottomRight = new Direction(+1, +1);
-        private readonly Direction _bottomLeft = new Direction(-1, +1);
         protected Bitmap _bmp;
         protected Line _leftBorder;
         protected Line _rightBorder;
         protected Line _topBorder;
         protected Line _bottomBorder;
-
-        protected int _length;
-        protected int _width;
-        protected int _calValue;
 
         protected void SetBmp(Bitmap bmp)
         {
@@ -49,7 +42,7 @@ namespace BrickSorter
 
         protected void FindAngleForLeftBorder()
         {
-            var direction = _leftBorder.Point.Y < _rightBorder.Point.Y ? _bottomRight : _topRight;
+            var direction = _leftBorder.Point.Y < _rightBorder.Point.Y ? Directions.BottomRight : Directions.TopRight;
             var delta = _leftBorder.Point.Y < _rightBorder.Point.Y ? +1 : -1;
             var nonWhitePixelsBefore = 0;
             while (true)
@@ -68,7 +61,7 @@ namespace BrickSorter
         protected void AdjustRightBorder()
         {
             _rightBorder.AngleInDegrees = _leftBorder.AngleInDegrees;
-            var direction = _rightBorder.AngleInDegrees > 0 ? _bottomRight : _bottomLeft;
+            var direction = _rightBorder.AngleInDegrees > 0 ? Directions.BottomRight : Directions.BottomLeft;
             _rightBorder.Point = new Point(_rightBorder.GetXbyY(0), 0);
             var nonWhitePixelsCounter = CountNonWhitePixels(_rightBorder, direction);
             while (nonWhitePixelsCounter > 0)
@@ -78,7 +71,7 @@ namespace BrickSorter
             }
         }
 
-        protected int CountNonWhitePixels(Line line, Direction direction)
+        protected int CountNonWhitePixels(Line line, Directions.Direction direction)
         {
             var nonWhitePixelsCounter = 0;
             var sinAlpha = Math.Sin(line.AngleInRadians);
@@ -88,8 +81,8 @@ namespace BrickSorter
             var c = delta;
             while (true)
             {
-                var x = line.Point.X + (int)Math.Round(c * sinAlpha) * direction.Dx;
-                var y = line.Point.Y + (int)Math.Round(c * cosAlpha) * direction.Dy;
+                var x = line.Point.X + (int)Math.Round(c * sinAlpha) * direction.dx;
+                var y = line.Point.Y + (int)Math.Round(c * cosAlpha) * direction.dy;
 
                 if (x < 0 || x >= _bmp.Width || y < 0 || y >= _bmp.Height)
                     break;
@@ -106,7 +99,7 @@ namespace BrickSorter
 
         protected void FindTopBorder()
         {
-            var direction = _leftBorder.AngleInDegrees > 0 ? _topRight : _bottomRight;
+            var direction = _leftBorder.AngleInDegrees > 0 ? Directions.TopRight : Directions.BottomRight;
             // we are moving along left border
             for (var y = 0; y < _leftBorder.Point.Y; y++)
             {
@@ -119,7 +112,7 @@ namespace BrickSorter
 
         protected void FindBottomBorder()
         {
-            var direction = _leftBorder.AngleInDegrees > 0 ? _topRight : _bottomRight;
+            var direction = _leftBorder.AngleInDegrees > 0 ? Directions.TopRight : Directions.BottomRight;
             // we are moving along left border
             for (var y = _bmp.Height - 1; y > _leftBorder.Point.Y; y--)
             {
@@ -130,57 +123,32 @@ namespace BrickSorter
             }
         }
 
-
-
-        //protected void CalculateLength()
-        //{
-        //    var dx = _topBorder.X - _bottomBorder.X;
-        //    var dy = _topBorder.Y - _bottomBorder.Y;
-        //    _length = (int)Math.Round(Math.Sqrt(dx * dx + dy * dy));
-        //}
-
-        //protected void CalculateWidth()
-        //{
-        //    var dx = _topBorder.X - _rightBorder.X;
-        //    var dy = _topBorder.Y - _rightBorder.Y;
-        //    var c = Math.Sqrt(dx * dx + dy * dy);
-
-        //    _width = (int)Math.Round(Math.Sqrt(c * c - _length * _length));
-        //}
-
-        protected void SetCalibration(int calValue)
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        public static class Directions
         {
-            _calValue = calValue;
-        }
+            public static Direction TopRight;
+            public static Direction TopLeft;
+            public static Direction BottomRight;
+            public static Direction BottomLeft;
 
-        //protected string GetBrickSize(string imgPath)
-        //{
-        //    LoadFromFile(imgPath);
-        //    ConvertToLowerQuality();
-        //    CompensateBackground();
-        //    FindLeftBorder();
-        //    FindRightCorner();
-        //    FindAngleForLeftBorder();
-        //    AdjustRightBorder();
-        //    FindTopBorder();
-        //    FindBottomBorder();
-        //    CalculateLength();
-        //    CalculateWidth();
-
-        //    var shortSide = Math.Round((Math.Min(_width, _length) / (double)_calValue));
-        //    var longSide = Math.Round((Math.Max(_width, _length) / (double)_calValue));
-        //    return $"{shortSide}x{longSide}";
-        //}
-
-        public class Direction
-        {
-            public int Dx { get; }
-            public int Dy { get; }
-
-            public Direction(int dx, int dy)
+            public class Direction
             {
-                Dx = dx;
-                Dy = dy;
+                public int dx { get; }
+                public int dy { get; }
+
+                public Direction(int dx, int dy)
+                {
+                    this.dx = dx;
+                    this.dy = dy;
+                }
+            }
+
+            static Directions()
+            {
+                TopRight = new Direction(+1, -1);
+                TopLeft = new Direction(-1, -1);
+                BottomRight = new Direction(+1, +1);
+                BottomLeft = new Direction(-1, +1);
             }
         }
     }
