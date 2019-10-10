@@ -100,6 +100,14 @@ namespace BrickSorter
             Img = ((Bitmap)Img).Clone(destRect, PixelFormat.Format8bppIndexed);
         }
 
+        public static void DrawRectangle(Point a, Point b, Point c, Point d, Color color)
+        {
+            DrawLine(a, b, color);
+            DrawLine(b, c, color);
+            DrawLine(c, d, color);
+            DrawLine(d, a, color);
+        }
+
         public static void DrawLine(Point start, Point end, Color color)
         {
             var destRect = new Rectangle(0, 0, Img.Width, Img.Height);
@@ -123,11 +131,17 @@ namespace BrickSorter
 
         public static void DrawLine(Line line, Color color)
         {
-            var topX = line.GetXbyY(0);
-            DrawLine(line.Point, new Point(topX, 0), color);
+            if (line.AngleInDegrees % 180 != 0 && line.AngleInDegrees % 90 == 0)
+            {
+                DrawLine(new Point(0, line.Point.Y), new Point(Img.Width, line.Point.Y), color);
+                return;
+            }
 
-            var bottomX = line.GetXbyY(Img.Height);
-            DrawLine(line.Point, new Point(bottomX, Img.Height), color);
+            var top = line.GetPointAtY(0);
+            DrawLine(line.Point, new Point(top.X, 0), color);
+
+            var bottom = line.GetPointAtY(Img.Height);
+            DrawLine(line.Point, new Point(bottom.X, Img.Height), color);
         }
 
         public static void DrawText(Point start, string text, Brush brush)

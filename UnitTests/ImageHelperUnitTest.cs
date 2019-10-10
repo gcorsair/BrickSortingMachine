@@ -42,6 +42,10 @@ namespace UnitTests
             DrawLine(line0, Color.Red);
             DrawText(line0.Point, $"{line0.AngleInDegrees}°", Brushes.Red);
 
+            var line180 = new Line(new Point(200, 10), 180);
+            DrawLine(line180, Color.Blue);
+            DrawText(line180.Point, $"{line180.AngleInDegrees}°", Brushes.Blue);
+
             var line10 = new Line(new Point(30, 10), 10);
             DrawLine(line10, Color.Red);
             DrawText(line10.Point, $"{line10.AngleInDegrees}°", Brushes.Red);

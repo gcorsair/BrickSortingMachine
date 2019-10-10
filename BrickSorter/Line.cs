@@ -21,14 +21,19 @@ namespace BrickSorter
         {
             Point = new Point(Point.X + 1, Point.Y);
         }
-        public int GetXbyY(int y)
+        public void MoveLeft()
+        {
+            Point = new Point(Point.X - 1, Point.Y);
+        }
+        public Point GetPointAtY(int y)
         {
             var cotangentBeta = 1 / Math.Tan(Math.PI / 2 - AngleInRadians);
-            if (double.IsNegativeInfinity(cotangentBeta)) // over 9000 :D
-                cotangentBeta = -9001;
-            if (double.IsPositiveInfinity(cotangentBeta)) // over 9000 :D
-                cotangentBeta = 9001;
-            return (int)Math.Round(Point.X - (Point.Y - y) * cotangentBeta);
+
+            if (double.IsInfinity(cotangentBeta))
+                return new Point(Point.X - 100, Point.Y);
+
+            var x = (int)Math.Round(Point.X - (Point.Y - y) * cotangentBeta);
+            return new Point(x, y);
         }
     }
 }

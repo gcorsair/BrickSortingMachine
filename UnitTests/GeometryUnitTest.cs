@@ -52,9 +52,9 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void Intersection90Again()
+        public void Intersection89Neg()
         {
-            var a = new Line(new Point(0, 1), 90);
+            var a = new Line(new Point(0, 1), -89);
             var b = new Line(new Point(1, 0), 0);
             Assert.AreEqual(new Point(1, 1), Geometry.GetIntersectionPoint(a, b));
         }
