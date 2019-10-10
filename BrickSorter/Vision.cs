@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.IO;
 
 namespace BrickSorter
 {
@@ -42,19 +41,20 @@ namespace BrickSorter
 
         protected void FindAngleForLeftBorder()
         {
-            var direction = _leftBorder.Point.Y < _rightBorder.Point.Y ? Directions.BottomRight : Directions.TopRight;
             var delta = _leftBorder.Point.Y < _rightBorder.Point.Y ? +1 : -1;
-            var nonWhitePixelsBefore = 0;
-            _leftBorder.MoveLeft();
             while (true)
             {
-                var nonWhitePixels = CountNonWhitePixels(_leftBorder, direction);
-                if (nonWhitePixels > 0) // check this
+                var nonWhitePixels = CountNonWhitePixels(_leftBorder);
+                if (nonWhitePixels > 2) // check this
                 {
-                    _leftBorder.AngleInDegrees -= delta; // step back
                     return;
                 }
-                nonWhitePixelsBefore = nonWhitePixels;
+
+                if (nonWhitePixels == 0)
+                    _leftBorder.MoveRight();
+                else
+                    _leftBorder.MoveLeft();
+
                 _leftBorder.AngleInDegrees += delta;
             }
         }
@@ -62,30 +62,29 @@ namespace BrickSorter
         protected void AdjustRightBorder()
         {
             _rightBorder.AngleInDegrees = _leftBorder.AngleInDegrees;
-            var direction = _rightBorder.AngleInDegrees > 0 ? Directions.BottomRight : Directions.TopLeft;
             _rightBorder.Point = _rightBorder.GetPointAtY(0);
-            var nonWhitePixelsCounter = CountNonWhitePixels(_rightBorder, direction);
+            var nonWhitePixelsCounter = CountNonWhitePixels(_rightBorder);
             while (nonWhitePixelsCounter > 0)
             {
                 _rightBorder.MoveRight();
-                nonWhitePixelsCounter = CountNonWhitePixels(_rightBorder, direction);
+                nonWhitePixelsCounter = CountNonWhitePixels(_rightBorder);
             }
         }
 
-        protected int CountNonWhitePixels(Line line, Directions.Direction direction)
+        protected int CountNonWhitePixels(Line line)
         {
             var nonWhitePixelsCounter = 0;
             var sinAlpha = Math.Sin(line.AngleInRadians);
             var cosAlpha = Math.Cos(line.AngleInRadians);
 
-            const double delta = 0.2;
+            const double delta = 1.3;
             var c = delta;
             int x;
             int y;
             while (c < Geometry.CalculateDistance(new Point(0, 0), new Point(_bmp.Height, _bmp.Width)))
             {
-                x = line.Point.X + (int)Math.Round(c * sinAlpha) * direction.dx;
-                y = line.Point.Y + (int)Math.Round(c * cosAlpha) * direction.dy;
+                x = line.Point.X + (int)Math.Round(c * sinAlpha);
+                y = line.Point.Y + (int)Math.Round(c * cosAlpha);
 
                 c += delta;
 
@@ -102,56 +101,27 @@ namespace BrickSorter
 
         protected void FindTopBorder()
         {
-            var direction = _leftBorder.AngleInDegrees > 0 ? Directions.TopLeft : Directions.BottomRight;
+            var angle = _leftBorder.AngleInDegrees < 0 ? -90 : +90;
+            _topBorder = new Line(new Point(0, 0), _leftBorder.AngleInDegrees + angle);
             // we are moving along left border
             for (var y = 0; y < _leftBorder.Point.Y; y++)
             {
-                var p = _leftBorder.GetPointAtY(y);
-                _topBorder = new Line(p, _leftBorder.AngleInDegrees - 90);
-                if (CountNonWhitePixels(_topBorder, direction) > 0)
+                _topBorder.Point = _leftBorder.GetPointAtY(y);
+                if (CountNonWhitePixels(_topBorder) > 0)
                     return;
             }
         }
 
         protected void FindBottomBorder()
         {
-            var direction = _leftBorder.AngleInDegrees > 0 ? Directions.TopRight : Directions.BottomRight;
+            var angle = _leftBorder.AngleInDegrees < 0 ? -90 : +90;
+            _bottomBorder = new Line(new Point(0,0), _leftBorder.AngleInDegrees + angle);
             // we are moving along left border
             for (var y = _bmp.Height - 1; y > _leftBorder.Point.Y; y--)
             {
-                var p = _leftBorder.GetPointAtY(y);
-                _bottomBorder = new Line(p, _leftBorder.AngleInDegrees + 90);
-                if (CountNonWhitePixels(_bottomBorder, direction) > 0)
+                _bottomBorder.Point = _leftBorder.GetPointAtY(y);
+                if (CountNonWhitePixels(_bottomBorder) > 0)
                     return;
-            }
-        }
-
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public static class Directions
-        {
-            public static Direction TopRight;
-            public static Direction TopLeft;
-            public static Direction BottomRight;
-            public static Direction BottomLeft;
-
-            public class Direction
-            {
-                public int dx { get; }
-                public int dy { get; }
-
-                public Direction(int dx, int dy)
-                {
-                    this.dx = dx;
-                    this.dy = dy;
-                }
-            }
-
-            static Directions()
-            {
-                TopRight = new Direction(+1, -1);
-                TopLeft = new Direction(-1, -1);
-                BottomRight = new Direction(+1, +1);
-                BottomLeft = new Direction(-1, +1);
             }
         }
     }

@@ -66,5 +66,13 @@ namespace UnitTests
             var b = new Line(new Point(5, -5), -45);
             Assert.AreEqual(new Point(0, 0), Geometry.GetIntersectionPoint(a, b));
         }
+
+        [TestMethod]
+        public void IntersectionPrecision()
+        {
+            var a = new Line(new Point(208, 0), 3);
+            var b = new Line(new Point(107, 217), 93);
+            Assert.AreEqual(new Point(219, 211), Geometry.GetIntersectionPoint(a, b));
+        }
     }
 }

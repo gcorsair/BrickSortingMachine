@@ -16,13 +16,13 @@ namespace BrickSorter
         {
             var x1 = line.Point.X;
             var y1 = line.Point.Y;
-            var p2 = line.GetPointAtY(-10); // doesn't matter
+            var p2 = line.GetPointAtY(-100); // doesn't matter
             var x2 = p2.X;
             var y2 = p2.Y;
 
             var y3 = anotherLine.Point.Y;
             var x3 = anotherLine.Point.X;
-            var p4 = anotherLine.GetPointAtY(-10); // doesn't matter
+            var p4 = anotherLine.GetPointAtY(-100); // doesn't matter
             var x4 = p4.X;
             var y4 = p4.Y;
 

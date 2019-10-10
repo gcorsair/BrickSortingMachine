@@ -11,7 +11,8 @@ namespace UnitTests
     [DeploymentItem(@"TestData\extra.png")]
     [DeploymentItem(@"TestData\circle.png")]
     [DeploymentItem(@"TestData\pacman.png")]
-    [DeploymentItem(@"TestData\pacman2.png")]
+    [DeploymentItem(@"TestData\two_processed_flip.png")]
+    [DeploymentItem(@"TestData\six.png")]
     [TestClass]
     public class VisionUnitTest : Vision
     {
@@ -48,9 +49,9 @@ namespace UnitTests
 
             DebugVisualize(new List<Line> { _leftBorder, _rightBorder });
             Assert.AreEqual(new Point(50, 52), _leftBorder.Point);
-            Assert.AreEqual(40, _leftBorder.AngleInDegrees);
-            Assert.AreEqual(new Point(34, 0), _rightBorder.Point);
-            Assert.AreEqual(40, _rightBorder.AngleInDegrees);
+            Assert.AreEqual(37, _leftBorder.AngleInDegrees);
+            Assert.AreEqual(new Point(40, 0), _rightBorder.Point);
+            Assert.AreEqual(37, _rightBorder.AngleInDegrees);
         }
 
         [TestMethod]
@@ -63,7 +64,7 @@ namespace UnitTests
 
             DebugVisualize(new List<Line> { _topBorder });
             Assert.AreEqual(new Point(50, 51), _topBorder.Point);
-            Assert.AreEqual(-50, _topBorder.AngleInDegrees);
+            Assert.AreEqual(130, _topBorder.AngleInDegrees);
         }
 
         [TestMethod]
@@ -80,21 +81,50 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void MeasureBrick()
+        public void PixelsCounter()
         {
             SetBmp((Bitmap)Image.FromFile("circle.png"));
+            const int delta = 1;
+            var line = new Line(new Point(150, 150), 0);
+            var min = 300;
+            var max = 0;
+            while (line.AngleInDegrees <= 90)
+            {
+                var nonWhitePixels = CountNonWhitePixels(line);
+
+                if (nonWhitePixels > max)
+                    max = nonWhitePixels;
+
+                if (nonWhitePixels < min)
+                    min = nonWhitePixels;
+
+                line.AngleInDegrees += delta;
+            }
+
+            Console.WriteLine($"{min}..{max}");
+            Assert.IsTrue((max - min) <= 1);
+        }
+
+        [TestMethod]
+        public void MeasureBrick()
+        {
+            Assert.AreEqual("129x106",GetBrickDimensions("pacman.png"));
+            Assert.AreEqual("129x128",GetBrickDimensions("circle.png"));
+            Assert.AreEqual("126x87",GetBrickDimensions("extra.png"));
+            Assert.AreEqual("136x87",GetBrickDimensions("six.png"));
+            Assert.AreEqual("41x21",GetBrickDimensions("two_processed_flip.png"));
+            Assert.AreEqual("42x24",GetBrickDimensions("two_processed.png"));
+        }
+
+        private string GetBrickDimensions(string file)
+        {
+            SetBmp((Bitmap) Image.FromFile(file));
             FindLeftBorder();
-            DebugVisualize(new List<Line> { _leftBorder });
             FindRightBorder();
-            DebugVisualize(new List<Line> { _leftBorder, _rightBorder });
             FindAngleForLeftBorder();
-            DebugVisualize(new List<Line> { _leftBorder, _rightBorder });
             AdjustRightBorder();
-            DebugVisualize(new List<Line> { _leftBorder, _rightBorder });
             FindTopBorder();
-            DebugVisualize(new List<Line> { _leftBorder, _rightBorder, _topBorder });
             FindBottomBorder();
-            DebugVisualize(new List<Line> { _leftBorder, _rightBorder, _topBorder, _bottomBorder });
 
             var a = Geometry.GetIntersectionPoint(_leftBorder, _topBorder);
             var b = Geometry.GetIntersectionPoint(_topBorder, _rightBorder);
@@ -107,10 +137,14 @@ namespace UnitTests
             var width = Math.Min(ab, bc);
             var length = Math.Max(ab, bc);
 
+            var dimensions = $"{length}x{width}";
+#if DEBUG
             ImageHelper.Img = _bmp;
             ImageHelper.DrawRectangle(a, b, c, d, Color.Red);
-            ImageHelper.DrawText(new Point(10, 10), $"{length}x{width}", Brushes.Red);
+            ImageHelper.DrawText(new Point(10, 10), dimensions, Brushes.Red);
             ImageHelper.Img.Save(Path.Combine(Path.GetTempPath(), "VisionUnitTest.png"));
+#endif
+            return dimensions;
         }
 
         private void DebugVisualize(List<Line> lines)
